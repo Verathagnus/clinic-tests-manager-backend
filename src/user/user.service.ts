@@ -23,4 +23,12 @@ export class UserService {
     `;
     return user;
   }
+
+  async getUsers(): Promise<any> {
+    const users = await this.sql`
+      SELECT * FROM users`;
+    return users.map((user) => {
+      return user.username;
+    });
+  }
 }

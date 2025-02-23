@@ -34,31 +34,31 @@ export class InvoiceController {
   }
 
   @Get(':id/print')
-@Header('Content-Type', 'application/pdf')
-@Header('Content-Disposition', 'attachment; filename="invoice.pdf"')
-async printInvoice(
-  @Param('id') id: number
-): Promise<StreamableFile> {
-  try {
-    // Check if the invoice exists
-    const invoice = await this.invoiceService.getInvoicePrintDetails(id);
-    if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
-    }
+  @Header('Content-Type', 'application/pdf')
+  @Header('Content-Disposition', 'attachment; filename="invoice.pdf"')
+  async printInvoice(
+    @Param('id') id: number
+  ): Promise<StreamableFile> {
+    try {
+      // Check if the invoice exists
+      const invoice = await this.invoiceService.getInvoicePrintDetails(id);
+      if (!invoice) {
+        throw new NotFoundException(`Invoice with ID ${id} not found`);
+      }
 
-    // Generate the PDF
-    const buffer = await this.invoiceService.printInvoice(id);
-    return new StreamableFile(buffer);
-  } catch (error) {
-    if (error instanceof NotFoundException) {
-      throw error; // Re-throw the NotFoundException
+      // Generate the PDF
+      const buffer = await this.invoiceService.printInvoice(id);
+      return new StreamableFile(buffer);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error; // Re-throw the NotFoundException
+      }
+      // Log the error for debugging purposes
+      console.error('Error in printInvoice:', error);
+      // Throw a more descriptive HttpException
+      throw new HttpException('Failed to print invoice', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    // Log the error for debugging purposes
-    console.error('Error in printInvoice:', error);
-    // Throw a more descriptive HttpException
-    throw new HttpException('Failed to print invoice', HttpStatus.INTERNAL_SERVER_ERROR);
   }
-}
 
   @Get()
   async getInvoices(
