@@ -9,8 +9,8 @@ import { PatientModule } from './patient/patient.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { SeedModule } from './seed/seed.module';
-import { BackupReportModule } from './backup/backup.module';
 import { ReportModule } from './report/report.module';
+import { BackupModule } from './backup/backup.module';
 
 @Module({
   imports: [
@@ -23,7 +23,7 @@ import { ReportModule } from './report/report.module';
     AuthModule,
     UserModule,
     SeedModule,
-    BackupReportModule,
+    BackupModule,
     ReportModule,
   ],
 })
