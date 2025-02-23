@@ -16,7 +16,7 @@ export class ItemGroupService {
   }
 
   async getItemGroups() {
-    return this.sql`SELECT * FROM item_groups WHERE deleted_at IS NULL`;
+    return this.sql`SELECT * FROM item_groups WHERE deleted_at IS NULL ORDER BY id`;
   }
 
   async updateItemGroup(id: number, name: string) {

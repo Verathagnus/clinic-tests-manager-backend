@@ -12,9 +12,9 @@ export class ItemService {
       SELECT * FROM item_groups WHERE id = ${groupId} AND deleted_at IS NULL
     `;
 
-    if (!group) {
-      throw new BadRequestException('Invalid item group ID or the group is deleted.');
-    }
+    // if (!group) {
+    //   throw new BadRequestException('Invalid item group ID or the group is deleted.');
+    // }
 
     // Proceed to create the item
     const [item] = await this.sql`
@@ -31,6 +31,58 @@ export class ItemService {
       return [];
     }
     return items;
+  }
+
+  async getItemsFiltered(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    groupId: number | null = null,
+    sortBy: string = 'created_at',
+    sortOrder: 'ASC' | 'DESC' = 'DESC'
+  ) {
+    const offset = (page - 1) * limit;
+
+    // Validate sortBy and sortOrder to prevent SQL injection
+    const validSortColumns = ['name', 'description', 'price', 'created_at'];
+    const validSortOrders = ['ASC', 'DESC'];
+
+    if (!validSortColumns.includes(sortBy)) {
+      sortBy = 'created_at'; // Default to 'created_at' if invalid
+    }
+
+    if (!validSortOrders.includes(sortOrder)) {
+      sortOrder = 'DESC'; // Default to 'DESC' if invalid
+    }
+
+    // Construct the query safely
+    let query = this.sql`
+      SELECT * FROM items 
+      WHERE deleted_at IS NULL 
+      AND (name ILIKE ${`%${search}%`} OR description ILIKE ${`%${search}%`})
+    `;
+
+    if (groupId) {
+      query = this.sql`${query} AND group_id = ${groupId}`;
+    }
+
+    query = this.sql`${query} ORDER BY ${this.sql.unsafe(`${sortBy} ${sortOrder}`)} LIMIT ${limit} OFFSET ${offset}`;
+
+    const items = await query;
+
+    const totalItems = await this.sql`
+      SELECT COUNT(*) FROM items 
+      WHERE deleted_at IS NULL 
+      AND (name ILIKE ${`%${search}%`} OR description ILIKE ${`%${search}%`})
+      ${groupId ? this.sql`AND group_id = ${groupId}` : this.sql``}
+    `;
+
+    return {
+      items,
+      totalItems: totalItems[0].count,
+      totalPages: Math.ceil(totalItems[0].count / limit),
+      currentPage: page,
+    };
   }
 
   async updateItem(id: number, name: string, groupId: number, description: string, price: number) {

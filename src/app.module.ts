@@ -9,6 +9,8 @@ import { PatientModule } from './patient/patient.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { SeedModule } from './seed/seed.module';
+import { BackupReportModule } from './backup/backup.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { SeedModule } from './seed/seed.module';
     AuthModule,
     UserModule,
     SeedModule,
+    BackupReportModule,
+    ReportModule,
   ],
 })
 export class AppModule {}

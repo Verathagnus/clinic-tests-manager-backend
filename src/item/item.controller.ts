@@ -1,5 +1,5 @@
 // src/item/item.controller.ts
-import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -16,6 +16,18 @@ export class ItemController {
   @Get()
   async findAll() {
     return this.itemService.getItems();
+  }
+
+  @Get("filter")
+  async findAllFiltered(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('search') search: string = '',
+    @Query('groupId') groupId: number | null = null,
+    @Query('sortBy') sortBy: string = 'created_at',
+    @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'DESC'
+  ) {
+    return this.itemService.getItemsFiltered(page, limit, search, groupId, sortBy, sortOrder);
   }
 
   @Put(':id')
