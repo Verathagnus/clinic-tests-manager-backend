@@ -18,6 +18,8 @@ services:
         container_name: nest-backend
         ports:
             - '${PORT}:3000'
+        volumes:
+            - ./docker-data-backend:/usr/src/app
         environment:
             - DB_HOST=localhost
             - DB_PORT=5432
