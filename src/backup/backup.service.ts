@@ -10,7 +10,7 @@ const execAsync = promisify(exec);
 
 @Injectable()
 export class BackupService {
-  constructor(@Inject('DATABASE_CONNECTION') private sql: postgres.Sql<any>) {}
+  constructor(@Inject('DATABASE_CONNECTION') private sql: postgres.Sql<any>) { }
 
   /**
    * Creates a backup of the database using `pg_dump`.
@@ -30,10 +30,10 @@ export class BackupService {
       if (!fs.existsSync(path.dirname(filePath))) {
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
       }
- 
+
       // Run pg_dump command
-      await execAsync(`pg_dump -Fc --dbname=postgresql://${username}:${password}@127.0.0.1:5432/${database} -f ${filePath}`);
-      
+      await execAsync(`pg_dump -Fc --dbname=postgresql://${username}:${password}@127.0.0.1:5432 -f ${filePath}`);
+
       // Create a readable stream from the backup file
       const stream = fs.createReadStream(filePath);
 
@@ -55,18 +55,35 @@ export class BackupService {
    */
   async restoreBackup(backupFile: Express.Multer.File): Promise<void> {
     const username = process.env.DB_USER || 'postgres';
+    const password = process.env.DB_PASS || 'postgres';
     const database = process.env.DB_NAME || 'clinic_db';
-    const filePath = path.join(__dirname, '..', 'backups', backupFile.originalname);
+    const date = new Date();
+    const currentDate = `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}.${date.getHours()}.${date.getMinutes()}`;
+    const preRestoreBackupFileName = `pre-restore-backup-${currentDate}.sql`;
+    const preRestoreBackupFilePath = path.join(__dirname, '..', 'backups', preRestoreBackupFileName);
+    const restoreFilePath = path.join(__dirname, '..', 'backups', backupFile.originalname);
 
     try {
+      // Ensure the backups directory exists
+      if (!fs.existsSync(path.dirname(preRestoreBackupFilePath))) {
+        fs.mkdirSync(path.dirname(preRestoreBackupFilePath), { recursive: true });
+      }
+
+      // Create a backup of the current database state
+      await execAsync(`pg_dump -Fc --dbname=postgresql://${username}:${password}@127.0.0.1:5432 -f ${preRestoreBackupFilePath}`);
+      console.log('Pre-restore backup created successfully!');
+
       // Save the uploaded file to the backups directory
-      fs.writeFileSync(filePath, backupFile.buffer);
+      if (!fs.existsSync(path.dirname(restoreFilePath))) {
+        fs.mkdirSync(path.dirname(restoreFilePath), { recursive: true });
+      }
+      fs.writeFileSync(restoreFilePath, backupFile.buffer);
 
       // Run pg_restore command
-      await execAsync(`pg_restore -U ${username} -d ${database} ${filePath}`);
+      await execAsync(`pg_restore --clean --if-exists -Fc -c  --dbname=postgresql://${username}:${password}@127.0.0.1:5432 ${restoreFilePath}`);
 
-      // Delete the file after restoration
-      fs.unlinkSync(filePath);
+      // Delete the restore file after restoration
+      fs.unlinkSync(restoreFilePath);
 
       console.log('Database restored successfully!');
     } catch (error) {
