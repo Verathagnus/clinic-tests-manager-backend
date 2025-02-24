@@ -25,7 +25,7 @@ services:
             - DB_PORT=5432
             - DB_USER=postgres
             - DB_PASS=postgres
-            - B_NAME=clinic_db
+            - DB_NAME=clinic_db
             - PORT=9921
             - COMPANY_NAME=SE
             - COMPANY_NUMBER=1111111111
