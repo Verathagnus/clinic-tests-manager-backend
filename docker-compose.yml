@@ -11,6 +11,8 @@ services:
             - POSTGRES_DB=clinic_db
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=postgres
+        networks:
+            - clinic-network
     backend:
         build:
             context: .
@@ -19,7 +21,7 @@ services:
         ports:
             - '${PORT}:3000'
         volumes:
-            - ./docker-data-backend:/usr/src/app
+            - ./docker-data-backend-backups:/app/backups:rw
         environment:
             - DB_HOST=localhost
             - DB_PORT=5432
@@ -32,3 +34,9 @@ services:
             - COMPANY_ADDRESS=Address
         depends_on:
             - db
+        networks:
+            - clinic-network
+networks:
+    clinic-network:
+        external: true
+        
